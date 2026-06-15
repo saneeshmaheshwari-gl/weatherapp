@@ -1,0 +1,133 @@
+.calculator {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.display {
+  background: rgba(2, 6, 23, 0.7);
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  margin-bottom: 18px;
+  text-align: right;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.expression {
+  font-size: 0.95rem;
+  color: rgba(226, 232, 240, 0.55);
+  min-height: 1.2em;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.result {
+  font-size: 2.6rem;
+  font-weight: 300;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  word-break: break-all;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.key {
+  appearance: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 500;
+  height: 64px;
+  border-radius: 16px;
+  color: #f8fafc;
+  transition: transform 0.08s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.key:active {
+  transform: scale(0.96);
+}
+
+.key:focus-visible {
+  box-shadow: 0 0 0 2px rgba(165, 180, 252, 0.7);
+}
+
+.key-num {
+  background: rgba(51, 65, 85, 0.85);
+}
+
+.key-num:hover {
+  background: rgba(71, 85, 105, 0.95);
+}
+
+.key-fn {
+  background: rgba(100, 116, 139, 0.7);
+  color: #f1f5f9;
+}
+
+.key-fn:hover {
+  background: rgba(120, 137, 161, 0.85);
+}
+
+.key-op {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+}
+
+.key-op:hover {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+}
+
+.key-op.key-active {
+  background: #fff;
+  color: #4338ca;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.key-eq {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #fff;
+}
+
+.key-eq:hover {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+}
+
+.key-wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 380px) {
+  .calculator {
+    padding: 16px;
+    border-radius: 20px;
+  }
+  .key {
+    height: 58px;
+    font-size: 1.15rem;
+  }
+  .result {
+    font-size: 2.2rem;
+  }
+}
