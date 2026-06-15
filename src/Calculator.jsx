@@ -10,7 +10,7 @@ function format(value) {
   if (Math.abs(num) >= 1e12 || (num !== 0 && Math.abs(num) < 1e-6)) {
     return num.toExponential(6)
   }
-  const str = String(value)
+  const str = String(parseFloat(num.toPrecision(10)))
   if (str.includes('.')) {
     const [intPart, decPart] = str.split('.')
     const trimmedDec = decPart.slice(0, MAX_DIGITS - intPart.length)
@@ -42,6 +42,8 @@ export default function Calculator() {
   const [previous, setPrevious] = useState(null)
   const [operator, setOperator] = useState(null)
   const [waitingForOperand, setWaitingForOperand] = useState(false)
+  const [lastOperand, setLastOperand] = useState(null)
+  const [lastOperator, setLastOperator] = useState(null)
 
   const inputDigit = (digit) => {
     if (display === 'Error') {
@@ -76,6 +78,8 @@ export default function Calculator() {
     setPrevious(null)
     setOperator(null)
     setWaitingForOperand(false)
+    setLastOperand(null)
+    setLastOperator(null)
   }
 
   const toggleSign = () => {
@@ -86,7 +90,7 @@ export default function Calculator() {
   }
 
   const percent = () => {
-    if (display === 'Error') return
+    if (display === 'Error' || waitingForOperand) return
     const value = parseFloat(display) / 100
     setDisplay(format(value))
   }
@@ -109,9 +113,24 @@ export default function Calculator() {
   }
 
   const handleEquals = () => {
-    if (operator === null || waitingForOperand || display === 'Error') return
-    const result = compute(previous, parseFloat(display), operator)
+    if (display === 'Error') return
+
+    // Replay mode: no active operator but a saved last operation exists
+    if (operator === null) {
+      if (lastOperator === null || lastOperand === null) return
+      const result = compute(parseFloat(display), lastOperand, lastOperator)
+      setDisplay(format(result))
+      setWaitingForOperand(true)
+      return
+    }
+
+    if (waitingForOperand) return
+
+    const inputValue = parseFloat(display)
+    const result = compute(previous, inputValue, operator)
     setDisplay(format(result))
+    setLastOperand(inputValue)
+    setLastOperator(operator)
     setPrevious(null)
     setOperator(null)
     setWaitingForOperand(true)
@@ -150,6 +169,7 @@ export default function Calculator() {
         e.preventDefault()
         handleEquals()
       } else if (key === 'Backspace') {
+        e.preventDefault()
         backspace()
       } else if (key === 'Escape') {
         clearAll()
@@ -159,28 +179,28 @@ export default function Calculator() {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  })
+  }, [display, operator, waitingForOperand, previous, lastOperand, lastOperator])
 
   const buttons = [
-    { label: 'AC', type: 'fn', onClick: clearAll },
-    { label: '+/−', type: 'fn', onClick: toggleSign },
-    { label: '%', type: 'fn', onClick: percent },
-    { label: '÷', type: 'op', onClick: () => performOperation('÷'), active: operator === '÷' && waitingForOperand },
-    { label: '7', type: 'num', onClick: () => inputDigit(7) },
-    { label: '8', type: 'num', onClick: () => inputDigit(8) },
-    { label: '9', type: 'num', onClick: () => inputDigit(9) },
-    { label: '×', type: 'op', onClick: () => performOperation('×'), active: operator === '×' && waitingForOperand },
-    { label: '4', type: 'num', onClick: () => inputDigit(4) },
-    { label: '5', type: 'num', onClick: () => inputDigit(5) },
-    { label: '6', type: 'num', onClick: () => inputDigit(6) },
-    { label: '−', type: 'op', onClick: () => performOperation('−'), active: operator === '−' && waitingForOperand },
-    { label: '1', type: 'num', onClick: () => inputDigit(1) },
-    { label: '2', type: 'num', onClick: () => inputDigit(2) },
-    { label: '3', type: 'num', onClick: () => inputDigit(3) },
-    { label: '+', type: 'op', onClick: () => performOperation('+'), active: operator === '+' && waitingForOperand },
-    { label: '0', type: 'num wide', onClick: () => inputDigit(0) },
-    { label: '.', type: 'num', onClick: inputDecimal },
-    { label: '=', type: 'eq', onClick: handleEquals },
+    { label: 'AC', aria: 'all clear', type: 'fn', onClick: clearAll },
+    { label: '+/−', aria: 'toggle sign', type: 'fn', onClick: toggleSign },
+    { label: '%', aria: 'percent', type: 'fn', onClick: percent },
+    { label: '÷', aria: 'divide', type: 'op', onClick: () => performOperation('÷'), active: operator === '÷' && waitingForOperand },
+    { label: '7', aria: '7', type: 'num', onClick: () => inputDigit(7) },
+    { label: '8', aria: '8', type: 'num', onClick: () => inputDigit(8) },
+    { label: '9', aria: '9', type: 'num', onClick: () => inputDigit(9) },
+    { label: '×', aria: 'multiply', type: 'op', onClick: () => performOperation('×'), active: operator === '×' && waitingForOperand },
+    { label: '4', aria: '4', type: 'num', onClick: () => inputDigit(4) },
+    { label: '5', aria: '5', type: 'num', onClick: () => inputDigit(5) },
+    { label: '6', aria: '6', type: 'num', onClick: () => inputDigit(6) },
+    { label: '−', aria: 'subtract', type: 'op', onClick: () => performOperation('−'), active: operator === '−' && waitingForOperand },
+    { label: '1', aria: '1', type: 'num', onClick: () => inputDigit(1) },
+    { label: '2', aria: '2', type: 'num', onClick: () => inputDigit(2) },
+    { label: '3', aria: '3', type: 'num', onClick: () => inputDigit(3) },
+    { label: '+', aria: 'add', type: 'op', onClick: () => performOperation('+'), active: operator === '+' && waitingForOperand },
+    { label: '0', aria: '0', type: 'num wide', onClick: () => inputDigit(0) },
+    { label: '.', aria: 'decimal point', type: 'num', onClick: inputDecimal },
+    { label: '=', aria: 'equals', type: 'eq', onClick: handleEquals },
   ]
 
   const expression = previous !== null
@@ -197,6 +217,7 @@ export default function Calculator() {
         {buttons.map((btn) => (
           <button
             key={btn.label}
+            aria-label={btn.aria}
             onClick={btn.onClick}
             className={`key key-${btn.type.split(' ')[0]}${
               btn.type.includes('wide') ? ' key-wide' : ''
