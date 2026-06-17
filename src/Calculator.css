@@ -38,7 +38,8 @@
   background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-top: none;
-  border-radius: 0 0 24px 24px;
+  border-bottom: none;
+  border-radius: 0;
   padding: 20px;
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
@@ -151,6 +152,23 @@
 
 .key-wide {
   grid-column: span 2;
+}
+
+.calc-footer {
+  background: rgba(10, 15, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0 0 24px 24px;
+  padding: 9px 18px;
+  text-align: center;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.calc-footer span {
+  font-size: 0.7rem;
+  color: rgba(226, 232, 240, 0.35);
+  letter-spacing: 0.06em;
 }
 
 @media (max-width: 380px) {

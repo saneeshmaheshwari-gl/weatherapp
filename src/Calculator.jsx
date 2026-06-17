@@ -256,6 +256,9 @@ export default function Calculator() {
           ))}
         </div>
       </div>
+      <footer className="calc-footer">
+        <span>&copy; {new Date().getFullYear()} Calculator &mdash; Built with React</span>
+      </footer>
     </div>
   )
 }
