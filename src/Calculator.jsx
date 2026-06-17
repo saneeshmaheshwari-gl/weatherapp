@@ -3,6 +3,9 @@ import './Calculator.css'
 
 const MAX_DIGITS = 12
 
+// ASCII keys are state tokens; Unicode symbols are display-only
+const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' }
+
 function format(value) {
   if (value === 'Error') return value
   const num = Number(value)
@@ -23,17 +26,14 @@ function compute(a, b, op) {
   const x = Number(a)
   const y = Number(b)
   switch (op) {
-    case '+':
-      return x + y
-    case '−':
-      return x - y
-    case '×':
-      return x * y
-    case '÷':
+    case '+': return x + y
+    case '-': return x - y
+    case '*': return x * y
+    case '/':
       if (y === 0) return 'Error'
       return x / y
     default:
-      return y
+      return 'Error'
   }
 }
 
@@ -48,6 +48,8 @@ export default function Calculator() {
   const inputDigit = (digit) => {
     if (display === 'Error') {
       clearAll()
+      setDisplay(String(digit))
+      return
     }
     if (waitingForOperand) {
       setDisplay(String(digit))
@@ -84,9 +86,7 @@ export default function Calculator() {
 
   const toggleSign = () => {
     if (display === '0' || display === 'Error') return
-    setDisplay(
-      display.startsWith('-') ? display.slice(1) : '-' + display,
-    )
+    setDisplay(display.startsWith('-') ? display.slice(1) : '-' + display)
   }
 
   const percent = () => {
@@ -105,7 +105,14 @@ export default function Calculator() {
       const result = compute(previous, inputValue, operator)
       const formatted = format(result)
       setDisplay(formatted)
-      setPrevious(result === 'Error' ? null : Number(result))
+      if (result === 'Error') {
+        // Full reset on error — don't leave operator set with null previous
+        setPrevious(null)
+        setOperator(null)
+        setWaitingForOperand(false)
+        return
+      }
+      setPrevious(Number(formatted))
     }
 
     setWaitingForOperand(true)
@@ -159,12 +166,12 @@ export default function Calculator() {
       } else if (key === '+') {
         performOperation('+')
       } else if (key === '-') {
-        performOperation('−')
+        performOperation('-')
       } else if (key === '*') {
-        performOperation('×')
+        performOperation('*')
       } else if (key === '/') {
         e.preventDefault()
-        performOperation('÷')
+        performOperation('/')
       } else if (key === 'Enter' || key === '=') {
         e.preventDefault()
         handleEquals()
@@ -185,15 +192,15 @@ export default function Calculator() {
     { label: 'AC', aria: 'all clear', type: 'fn', onClick: clearAll },
     { label: '+/−', aria: 'toggle sign', type: 'fn', onClick: toggleSign },
     { label: '%', aria: 'percent', type: 'fn', onClick: percent },
-    { label: '÷', aria: 'divide', type: 'op', onClick: () => performOperation('÷'), active: operator === '÷' && waitingForOperand },
+    { label: '÷', aria: 'divide', type: 'op', onClick: () => performOperation('/'), active: operator === '/' && waitingForOperand },
     { label: '7', aria: '7', type: 'num', onClick: () => inputDigit(7) },
     { label: '8', aria: '8', type: 'num', onClick: () => inputDigit(8) },
     { label: '9', aria: '9', type: 'num', onClick: () => inputDigit(9) },
-    { label: '×', aria: 'multiply', type: 'op', onClick: () => performOperation('×'), active: operator === '×' && waitingForOperand },
+    { label: '×', aria: 'multiply', type: 'op', onClick: () => performOperation('*'), active: operator === '*' && waitingForOperand },
     { label: '4', aria: '4', type: 'num', onClick: () => inputDigit(4) },
     { label: '5', aria: '5', type: 'num', onClick: () => inputDigit(5) },
     { label: '6', aria: '6', type: 'num', onClick: () => inputDigit(6) },
-    { label: '−', aria: 'subtract', type: 'op', onClick: () => performOperation('−'), active: operator === '−' && waitingForOperand },
+    { label: '−', aria: 'subtract', type: 'op', onClick: () => performOperation('-'), active: operator === '-' && waitingForOperand },
     { label: '1', aria: '1', type: 'num', onClick: () => inputDigit(1) },
     { label: '2', aria: '2', type: 'num', onClick: () => inputDigit(2) },
     { label: '3', aria: '3', type: 'num', onClick: () => inputDigit(3) },
@@ -204,28 +211,50 @@ export default function Calculator() {
   ]
 
   const expression = previous !== null
-    ? `${format(String(previous))} ${operator ?? ''}`.trim()
+    ? `${format(String(previous))} ${operator ? OP_SYMBOL[operator] : ''}`.trim()
     : ''
 
   return (
-    <div className="calculator">
-      <div className="display">
-        <div className="expression">{expression}&nbsp;</div>
-        <div className="result" title={display}>{display}</div>
-      </div>
-      <div className="keys">
-        {buttons.map((btn) => (
-          <button
-            key={btn.label}
-            aria-label={btn.aria}
-            onClick={btn.onClick}
-            className={`key key-${btn.type.split(' ')[0]}${
-              btn.type.includes('wide') ? ' key-wide' : ''
-            }${btn.active ? ' key-active' : ''}`}
+    <div className="calc-wrapper">
+      <header className="calc-header">
+        <svg className="calc-header-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+          <rect x="5" y="5" width="10" height="3" rx="0.75" fill="currentColor" opacity="0.7"/>
+          <rect x="5" y="10" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.6"/>
+          <rect x="8.9" y="10" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.6"/>
+          <rect x="12.8" y="10" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.9"/>
+          <rect x="5" y="13.8" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.6"/>
+          <rect x="8.9" y="13.8" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.6"/>
+          <rect x="12.8" y="13.8" width="2.2" height="2.2" rx="0.5" fill="currentColor" opacity="0.9"/>
+        </svg>
+        <span className="calc-header-title">Calculator</span>
+      </header>
+      <div className="calculator">
+        <div className="display">
+          <div className="expression">{expression}&nbsp;</div>
+          <div
+            className="result"
+            aria-live="polite"
+            aria-atomic="true"
+            title={display}
           >
-            {btn.label}
-          </button>
-        ))}
+            {display}
+          </div>
+        </div>
+        <div className="keys">
+          {buttons.map((btn) => (
+            <button
+              key={btn.label}
+              aria-label={btn.aria}
+              onClick={btn.onClick}
+              className={`key key-${btn.type.split(' ')[0]}${
+                btn.type.includes('wide') ? ' key-wide' : ''
+              }${btn.active ? ' key-active' : ''}`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -407,6 +407,38 @@ describe('Calculator', () => {
     })
   })
 
+  // ─── Header bar ──────────────────────────────────────────────────────────
+
+  describe('header bar', () => {
+    it('should render the header element with class calc-header', () => {
+      expect(document.querySelector('.calc-header')).not.toBeNull()
+    })
+
+    it('should render "Calculator" as the header title', () => {
+      expect(document.querySelector('.calc-header-title').textContent).toBe('Calculator')
+    })
+
+    it('should render the SVG icon with aria-hidden="true"', () => {
+      const icon = document.querySelector('.calc-header-icon')
+      expect(icon).not.toBeNull()
+      expect(icon.getAttribute('aria-hidden')).toBe('true')
+    })
+  })
+
+  // ─── aria-live / aria-atomic (RC-C) ──────────────────────────────────────
+
+  describe('accessibility — aria-live on result (RC-C)', () => {
+    it('should have aria-live="polite" on the result div', () => {
+      const result = document.querySelector('.result')
+      expect(result.getAttribute('aria-live')).toBe('polite')
+    })
+
+    it('should have aria-atomic="true" on the result div', () => {
+      const result = document.querySelector('.result')
+      expect(result.getAttribute('aria-atomic')).toBe('true')
+    })
+  })
+
   // ─── Accessibility (E3) ───────────────────────────────────────────────────
 
   describe('accessibility — aria-labels (E3)', () => {
@@ -498,6 +530,41 @@ describe('Calculator', () => {
       click('+')
       // display must still show Error
       expect(getDisplay()).toBe('Error')
+    })
+  })
+
+  // ─── Chained-operation error (RC-B lines 110-113) ────────────────────────
+
+  describe('chained-operation error reset (RC-B)', () => {
+    it('should show Error when a chained operator causes division by zero', () => {
+      // 5 ÷ 0 + : performOperation('+') computes 5/0 → Error → triggers RC-B reset
+      click('5')
+      click('÷')
+      click('0')
+      click('+')
+      expect(getDisplay()).toBe('Error')
+    })
+
+    it('should accept a fresh digit after chained-operation error', () => {
+      click('5')
+      click('÷')
+      click('0')
+      click('+')
+      expect(getDisplay()).toBe('Error')
+      click('3')
+      expect(getDisplay()).toBe('3')
+    })
+
+    it('should not carry forward the operator after chained-operation error', () => {
+      click('5')
+      click('÷')
+      click('0')
+      click('+')
+      expect(getDisplay()).toBe('Error')
+      // After error reset operator is null, so = should be a no-op on next digit
+      click('4')
+      click('=')
+      expect(getDisplay()).toBe('4')
     })
   })
 
